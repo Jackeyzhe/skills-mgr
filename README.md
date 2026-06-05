@@ -2,6 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![CI](https://github.com/Jackeyzhe/skills-mgr/actions/workflows/ci.yml/badge.svg)](https://github.com/Jackeyzhe/skills-mgr/actions/workflows/ci.yml)
+[中文文档](README.zh-CN.md)
 
 Manage installed AI skills across Claude Code and Codex: list skills, estimate
 usage, find overlap, safely remove and restore skills, check runtime health,
