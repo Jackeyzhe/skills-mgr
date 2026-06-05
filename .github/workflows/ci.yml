@@ -1,0 +1,28 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Python syntax check
+        run: |
+          PYTHONPYCACHEPREFIX=/tmp/skill-manager-pycache python3 -m py_compile \
+            scripts/skill-mgr \
+            scripts/skill-analyzer \
+            scripts/skill-remove \
+            scripts/skill-doctor \
+            scripts/skill-update
+      - name: Shell syntax check
+        run: |
+          bash -n install.sh
+          bash -n scripts/sync-skills
+      - name: Unit and integration tests
+        run: python3 -m unittest discover -s tests

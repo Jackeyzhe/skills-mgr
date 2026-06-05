@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# macOS
+.DS_Store
+*.swp
+*.swo
+
+# Environment
+.env
+.env.local
+venv/
+.venv/
+
+# IDE
+.idea/
+.vscode/
+*.sublime-*
+
+# Install artifacts
+/install.log
