@@ -297,16 +297,16 @@ def cmd_sync(args=None):
     print()
     print(f"{BOLD}Syncing skill symlinks (one-way)...{NC}")
     source = os.path.expanduser("~/.agents/skills")
-    targets = [
-        os.path.expanduser("~/.claude/skills"),
-        os.path.expanduser("~/.codex/skills"),
-    ]
+    targets = {
+        "~/.claude/skills": os.path.expanduser("~/.claude/skills"),
+        "~/.codex/skills": os.path.expanduser("~/.codex/skills"),
+    }
 
     if not os.path.isdir(source):
         print(f"{RED}Source skill directory not found: {source}{NC}")
         sys.exit(1)
 
-    for target in targets:
+    for label, target in targets.items():
         os.makedirs(target, exist_ok=True)
         for name in sorted(os.listdir(source)):
             src_path = os.path.join(source, name)
@@ -315,9 +315,38 @@ def cmd_sync(args=None):
             link_path = os.path.join(target, name)
             if not os.path.exists(link_path):
                 os.symlink(src_path, link_path)
-                print(f"  linked: {name} -> {target}")
+                print(f"  linked: {name} -> {label}")
 
     print(f"  Sync complete.")
+    print()
+
+    # Show directory structure tree
+    print(f"{BOLD}Directory Structure:{NC}")
+    print()
+
+    source = os.path.expanduser("~/.agents/skills")
+    source_skills = sorted([n for n in os.listdir(source) if os.path.isdir(os.path.join(source, n))])
+
+    # Column widths
+    name_w = max(len(n) for n in source_skills) if source_skills else 0
+    col_w = max(name_w, 20)
+
+    print(f"  {BOLD}~/.agents/skills/{NC}  (source, {len(source_skills)} skills)")
+    for n in source_skills:
+        print(f"      └── {n}")
+    print()
+
+    for label, target in targets.items():
+        linked = sorted([n for n in os.listdir(target) if os.path.islink(os.path.join(target, n))])
+        non_source = sorted([n for n in os.listdir(target) if os.path.isdir(os.path.join(target, n)) and not os.path.islink(os.path.join(target, n))])
+        print(f"  {BOLD}{label}{NC}  (symlinks)")
+        if linked:
+            print(f"      └── 🔗 {len(linked)} linked skills")
+        if non_source:
+            for n in non_source:
+                print(f"      └── 📁 {n}")
+        print()
+
     print()
 
 
