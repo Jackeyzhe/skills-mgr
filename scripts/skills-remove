@@ -150,7 +150,7 @@ def restore_backup(name, yes=False):
     if os.path.isdir(existing):
         print(f"{YELLOW}{name} already exists in .agents/skills/.{NC}")
         if not yes:
-            answer = input("Overwrite? (y/N): ").strip().lower()
+            answer = input("Overwrite? (y/N): ").replace("\r", "").replace("\n", "").strip()
             if answer != "y":
                 print("Cancelled.")
                 sys.exit(0)
@@ -192,7 +192,7 @@ def remove_skill(name, yes=False):
 
     # Confirm
     if not yes:
-        answer = input("Confirm removal? (y/N): ").strip().lower()
+        answer = input("Confirm removal? (y/N): ").replace("\r", "").replace("\n", "").strip().lower()
         if answer != "y":
             print("Cancelled.")
             sys.exit(0)
@@ -233,7 +233,7 @@ def clean_backups(yes=False):
         return
 
     if not yes:
-        answer = input("Permanently delete ALL backups? This cannot be undone. (yes/N): ").strip()
+        answer = input("Permanently delete ALL backups? This cannot be undone. (yes/N): ").replace("\r", "").replace("\n", "").strip()
         if answer != "yes":
             print("Cancelled.")
             sys.exit(0)
