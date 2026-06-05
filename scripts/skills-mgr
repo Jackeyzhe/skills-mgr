@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 """
-skill-mgr — Unified Skill Management CLI
+skills-mgr — Unified Skill Management CLI
 
 Usage:
-  skill-mgr list                 List all skills (version, size, category)
-  skill-mgr analyze [--json]     Usage frequency & size/token estimates
-  skill-mgr duplicates           Find overlapping/duplicate skills
-  skill-mgr remove <name>        Safely remove a skill (auto-backup)
-  skill-mgr restore [name]       Restore a previously removed skill
-  skill-mgr doctor [--summary]   Dependency health check
-  skill-mgr update [--apply]     Show local versions or apply upstream updates
-  skill-mgr sync                 One-way sync skill symlinks to all tools
+  skills-mgr list                 List all skills (version, size, category)
+  skills-mgr analyze [--json]     Usage frequency & size/token estimates
+  skills-mgr duplicates           Find overlapping/duplicate skills
+  skills-mgr remove <name>        Safely remove a skill (auto-backup)
+  skills-mgr restore [name]       Restore a previously removed skill
+  skills-mgr doctor [--summary]   Dependency health check
+  skills-mgr update [--apply]     Show local versions or apply upstream updates
+  skills-mgr sync                 One-way sync skill symlinks to all tools
 
 Each subcommand can also run standalone:
-  skill-analyzer | skill-remove | skill-doctor | skill-update | sync-skills
+  skills-analyzer | skills-remove | skills-doctor | skills-update | skills-sync
 """
 
 import json
@@ -290,7 +290,7 @@ def cmd_duplicates():
 def cmd_sync(args=None):
     """Sync skill symlinks from .agents/skills/ to Claude Code and Codex."""
     if args:
-        print(f"{RED}Error: skill-mgr sync does not support arguments: {' '.join(args)}{NC}")
+        print(f"{RED}Error: skills-mgr sync does not support arguments: {' '.join(args)}{NC}")
         print("Sync is one-way: ~/.agents/skills -> ~/.claude/skills and ~/.codex/skills.")
         sys.exit(1)
 
@@ -328,28 +328,28 @@ def cmd_sync(args=None):
 def cmd_usage():
     """Print usage information."""
     print(f"""
-{BOLD}skill-mgr — Unified Skill Management CLI{NC}
+{BOLD}skills-mgr — Unified Skill Management CLI{NC}
 
 {BOLD}Usage:{NC}
-  skill-mgr list                 List all installed skills
-  skill-mgr analyze [--json]     Usage frequency & size/token estimates
-  skill-mgr duplicates           Find overlapping/duplicate skills
-  skill-mgr remove <name>        Safely remove a skill (auto-backup)
-  skill-mgr restore [name]       Restore a previously removed skill
-  skill-mgr doctor [--summary]   Dependency health check
-  skill-mgr update [--apply]     Show local versions or apply upstream updates
-  skill-mgr sync                 One-way sync skill symlinks to all tools
+  skills-mgr list                 List all installed skills
+  skills-mgr analyze [--json]     Usage frequency & size/token estimates
+  skills-mgr duplicates           Find overlapping/duplicate skills
+  skills-mgr remove <name>        Safely remove a skill (auto-backup)
+  skills-mgr restore [name]       Restore a previously removed skill
+  skills-mgr doctor [--summary]   Dependency health check
+  skills-mgr update [--apply]     Show local versions or apply upstream updates
+  skills-mgr sync                 One-way sync skill symlinks to all tools
 
 {BOLD}Examples:{NC}
-  skill-mgr list                 # See all installed skills
-  skill-mgr analyze --json       # JSON analysis report
-  skill-mgr duplicates           # Check for overlap
-  skill-mgr remove baoyu-comic   # Remove the comic skill
-  skill-mgr doctor --summary     # Quick health check
-  skill-mgr update               # Show local versions and update guidance
+  skills-mgr list                 # See all installed skills
+  skills-mgr analyze --json       # JSON analysis report
+  skills-mgr duplicates           # Check for overlap
+  skills-mgr remove baoyu-comic   # Remove the comic skill
+  skills-mgr doctor --summary     # Quick health check
+  skills-mgr update               # Show local versions and update guidance
 
 {BOLD}Standalone scripts:{NC}
-  skill-analyzer | skill-remove | skill-doctor | skill-update | sync-skills
+  skills-analyzer | skills-remove | skills-doctor | skills-update | skills-sync
 """)
 
 
@@ -368,41 +368,41 @@ def main():
     if subcommand in ("list", "ls"):
         cmd_list()
     elif subcommand in ("analyze", "stats"):
-        script = find_script("skill-analyzer")
+        script = find_script("skills-analyzer")
         if script:
             os.execv(script, [script] + extra_args)
         else:
-            print(f"{RED}Error: skill-analyzer not found. Run install.sh first.{NC}")
+            print(f"{RED}Error: skills-analyzer not found. Run install.sh first.{NC}")
             sys.exit(1)
     elif subcommand in ("duplicates", "dup", "overlap"):
         cmd_duplicates()
     elif subcommand in ("remove", "rm", "delete"):
-        script = find_script("skill-remove")
+        script = find_script("skills-remove")
         if script:
             os.execv(script, [script] + extra_args)
         else:
-            print(f"{RED}Error: skill-remove not found. Run install.sh first.{NC}")
+            print(f"{RED}Error: skills-remove not found. Run install.sh first.{NC}")
             sys.exit(1)
     elif subcommand == "restore":
-        script = find_script("skill-remove")
+        script = find_script("skills-remove")
         if script:
             os.execv(script, [script, "--restore"] + extra_args)
         else:
-            print(f"{RED}Error: skill-remove not found. Run install.sh first.{NC}")
+            print(f"{RED}Error: skills-remove not found. Run install.sh first.{NC}")
             sys.exit(1)
     elif subcommand in ("doctor", "health", "check"):
-        script = find_script("skill-doctor")
+        script = find_script("skills-doctor")
         if script:
             os.execv(script, [script] + extra_args)
         else:
-            print(f"{RED}Error: skill-doctor not found. Run install.sh first.{NC}")
+            print(f"{RED}Error: skills-doctor not found. Run install.sh first.{NC}")
             sys.exit(1)
     elif subcommand in ("update", "upgrade"):
-        script = find_script("skill-update")
+        script = find_script("skills-update")
         if script:
             os.execv(script, [script] + extra_args)
         else:
-            print(f"{RED}Error: skill-update not found. Run install.sh first.{NC}")
+            print(f"{RED}Error: skills-update not found. Run install.sh first.{NC}")
             sys.exit(1)
     elif subcommand == "sync":
         cmd_sync(extra_args)

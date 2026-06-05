@@ -14,15 +14,15 @@ jobs:
           python-version: "3.11"
       - name: Python syntax check
         run: |
-          PYTHONPYCACHEPREFIX=/tmp/skills-manager-pycache python3 -m py_compile \
-            scripts/skill-mgr \
-            scripts/skill-analyzer \
-            scripts/skill-remove \
-            scripts/skill-doctor \
-            scripts/skill-update
+          PYTHONPYCACHEPREFIX=/tmp/skills-mgr-pycache python3 -m py_compile \
+            scripts/skills-mgr \
+            scripts/skills-analyzer \
+            scripts/skills-remove \
+            scripts/skills-doctor \
+            scripts/skills-update
       - name: Shell syntax check
         run: |
           bash -n install.sh
-          bash -n scripts/sync-skills
+          bash -n scripts/skills-sync
       - name: Unit and integration tests
         run: python3 -m unittest discover -s tests

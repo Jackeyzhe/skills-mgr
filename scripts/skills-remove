@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-skill-remove — Safely remove a skill with automatic backup and restore.
+skills-remove — Safely remove a skill with automatic backup and restore.
 
 Usage:
-  skill-remove <name>           Remove and back up a skill
-  skill-remove --list           List all backed-up skills
-  skill-remove --restore [name] Restore a backed-up skill
-  skill-remove --clean          Permanently delete all backups
-  skill-remove --yes <name>     Remove without confirmation prompt
+  skills-remove <name>           Remove and back up a skill
+  skills-remove --list           List all backed-up skills
+  skills-remove --restore [name] Restore a backed-up skill
+  skills-remove --clean          Permanently delete all backups
+  skills-remove --yes <name>     Remove without confirmation prompt
 """
 
 import argparse
@@ -107,8 +107,8 @@ def list_backups():
         backups.append(name)
 
     print()
-    print("  Restore: skill-remove --restore <name>")
-    print("  Purge all: skill-remove --clean")
+    print("  Restore: skills-remove --restore <name>")
+    print("  Purge all: skills-remove --clean")
     return backups
 
 
@@ -221,7 +221,7 @@ def remove_skill(name, yes=False):
     remove_symlinks(name)
 
     print()
-    print(f"To restore: skill-remove --restore {name}")
+    print(f"To restore: skills-remove --restore {name}")
 
 
 # ---- Clean all backups ----
@@ -280,10 +280,10 @@ def main():
         parser.print_help()
         print()
         print("Examples:")
-        print("  skill-remove baoyu-comic           Remove and back up a skill")
-        print("  skill-remove --list                 List backups")
-        print("  skill-remove --restore baoyu-comic  Restore a skill")
-        print("  skill-remove --clean                Delete all backups permanently")
+        print("  skills-remove baoyu-comic           Remove and back up a skill")
+        print("  skills-remove --list                 List backups")
+        print("  skills-remove --restore baoyu-comic  Restore a skill")
+        print("  skills-remove --clean                Delete all backups permanently")
 
 
 if __name__ == "__main__":

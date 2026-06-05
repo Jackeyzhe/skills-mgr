@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ============================================================
-# install.sh — Install (or uninstall) skills-manager CLI tools.
+# install.sh — Install (or uninstall) skills-mgr CLI tools.
 #
 # Symlinks scripts from the skill directory into ~/.local/bin/
 # so they are available on PATH.
@@ -25,9 +25,9 @@ SCRIPTS_SRC="${SKILL_DIR}/scripts"
 
 # ---- Uninstall ----
 if [ "${1:-}" = "--uninstall" ] || [ "${1:-}" = "-u" ]; then
-    echo "Removing skills-manager symlinks from ${BIN_DIR}..."
+    echo "Removing skills-mgr symlinks from ${BIN_DIR}..."
     removed=0
-    for script in skill-mgr skill-analyzer skill-remove skill-doctor skill-update sync-skills; do
+    for script in skills-mgr skills-analyzer skills-remove skills-doctor skills-update skills-sync; do
         dst="${BIN_DIR}/${script}"
         if [ -L "$dst" ]; then
             rm "$dst"
@@ -44,14 +44,14 @@ if [ "${1:-}" = "--uninstall" ] || [ "${1:-}" = "-u" ]; then
 fi
 
 # ---- Install ----
-echo "Installing skills-manager CLI tools..."
+echo "Installing skills-mgr CLI tools..."
 echo "  Source: ${SCRIPTS_SRC}"
 echo "  Target: ${BIN_DIR}"
 echo ""
 
 mkdir -p "$BIN_DIR"
 
-for script in skill-mgr skill-analyzer skill-remove skill-doctor skill-update sync-skills; do
+for script in skills-mgr skills-analyzer skills-remove skills-doctor skills-update skills-sync; do
     src="${SCRIPTS_SRC}/${script}"
     dst="${BIN_DIR}/${script}"
 
@@ -68,11 +68,11 @@ done
 echo ""
 case ":$PATH:" in
     *":${BIN_DIR}:"*)
-        echo "Done. Verify with: skill-mgr list"
+        echo "Done. Verify with: skills-mgr list"
         ;;
     *)
         echo "Done. ${BIN_DIR} is not currently on PATH."
-        echo "Add it to your shell profile, then run: skill-mgr list"
+        echo "Add it to your shell profile, then run: skills-mgr list"
         echo "Example: export PATH=\"${BIN_DIR}:\$PATH\""
         ;;
 esac

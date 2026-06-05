@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-skill-analyzer — Analyze skill usage frequency and size/token estimates.
+skills-analyzer — Analyze skill usage frequency and size/token estimates.
 
 Scans Claude Code and Codex conversation transcripts to estimate how
 often each skill is mentioned. This is a keyword-based approximation,
 not exact skill invocation tracking.
 
 Usage:
-  skill-analyzer [--json] [--top N] [--zero] [--no-trend]
+  skills-analyzer [--json] [--top N] [--zero] [--no-trend]
 
 Options:
   --json         Output results as JSON
@@ -29,7 +29,7 @@ SKILL_DIR = os.path.expanduser("~/.agents/skills")
 CC_DIR = os.path.expanduser("~/.claude/projects")
 CX_SESSIONS_DIR = os.path.expanduser("~/.codex/archived_sessions")
 CX_SESSIONS_DIR_ALT = os.path.expanduser("~/.codex/sessions")
-HISTORY_FILE = os.path.expanduser("~/.local/share/skill-analyzer/history.json")
+HISTORY_FILE = os.path.expanduser("~/.local/share/skills-analyzer/history.json")
 
 # ---- Terminal colors ----
 GREEN = "\033[0;32m"
@@ -360,8 +360,8 @@ def main():
         print(f"  {YELLOW}Skills with no detected usage:{NC}")
         for name in zero_use:
             print(f"    - {name} ({sizes.get(name, {}).get('size_kb', '?')} KB)")
-        print(f"    Consider running skill-mgr duplicates to check for overlap,")
-        print(f"    then skill-mgr remove <name> to clean up.")
+        print(f"    Consider running skills-mgr duplicates to check for overlap,")
+        print(f"    then skills-mgr remove <name> to clean up.")
         print()
 
     if high_score:

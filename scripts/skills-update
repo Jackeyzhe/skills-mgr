@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
-skill-update — Check for upstream skill updates and apply them.
+skills-update — Check for upstream skill updates and apply them.
 
 Shows local skill versions by default. Applying updates is explicit and
 uses `npx skills add <name> --global`.
 
 Usage:
-  skill-update                  Show local versions and update guidance
-  skill-update --apply [name]   Apply all updates (or a specific skill)
-  skill-update --dry-run        Preview what would be updated
+  skills-update                  Show local versions and update guidance
+  skills-update --apply [name]   Apply all updates (or a specific skill)
+  skills-update --dry-run        Preview what would be updated
 """
 
 import argparse
@@ -116,7 +116,7 @@ def main():
     args = parser.parse_args()
 
     print()
-    print(f"  {BOLD}Skill Update — Local versions and explicit updates{NC}")
+    print(f"  {BOLD}Skills Update — Local versions and explicit updates{NC}")
     print("  " + "─" * 50)
 
     # --apply mode
@@ -176,8 +176,8 @@ def main():
 
     print("  Upstream availability is registry-dependent and is not checked by default,")
     print("  because older skills CLI update commands can mutate global installs.")
-    print("  Preview apply commands: skill-update --apply --dry-run")
-    print("  Apply updates:          skill-update --apply")
+    print("  Preview apply commands: skills-update --apply --dry-run")
+    print("  Apply updates:          skills-update --apply")
 
 
 if __name__ == "__main__":

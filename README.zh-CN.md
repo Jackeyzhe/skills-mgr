@@ -1,7 +1,7 @@
-# Skills Manager
+# skills-mgr
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![CI](https://github.com/Jackeyzhe/skills-manager/actions/workflows/ci.yml/badge.svg)](https://github.com/Jackeyzhe/skills-manager/actions/workflows/ci.yml)
+[![CI](https://github.com/Jackeyzhe/skills-mgr/actions/workflows/ci.yml/badge.svg)](https://github.com/Jackeyzhe/skills-mgr/actions/workflows/ci.yml)
 
 统一管理 Claude Code 和 Codex 使用的 AI skills：列表查看、使用估算、重复检测、
 安全删除与恢复、依赖健康检查、显式更新，以及从统一目录同步软链接。
@@ -28,56 +28,56 @@
 ### 作为 Skill 安装
 
 ```bash
-npx skills add Jackeyzhe/skills-manager
-bash ~/.agents/skills/skills-manager/install.sh
+npx skills add Jackeyzhe/skills-mgr
+bash ~/.agents/skills/skills-mgr/install.sh
 ```
 
 如果 `~/.local/bin` 已在 `PATH` 中，就可以直接使用：
 
 ```bash
-skill-mgr list
-skill-mgr doctor --summary
-skill-mgr analyze --top 10
+skills-mgr list
+skills-mgr doctor --summary
+skills-mgr analyze --top 10
 ```
 
 ### 从源码运行
 
 ```bash
-git clone https://github.com/Jackeyzhe/skills-manager.git
-cd skills-manager
-python3 scripts/skill-mgr list
-python3 scripts/skill-doctor --summary
+git clone https://github.com/Jackeyzhe/skills-mgr.git
+cd skills-mgr
+python3 scripts/skills-mgr list
+python3 scripts/skills-doctor --summary
 ```
 
 ### 卸载
 
 ```bash
-bash ~/.agents/skills/skills-manager/install.sh --uninstall
-npx skills remove skills-manager
+bash ~/.agents/skills/skills-mgr/install.sh --uninstall
+npx skills remove skills-mgr
 ```
 
 ## CLI 参考
 
 | 命令 | 说明 |
 |------|------|
-| `skill-mgr list` | 列出 skill 的版本、大小、文件数、软链接状态和分类 |
-| `skill-mgr analyze [--json] [--top N] [--zero] [--no-trend]` | 基于关键词估算使用频率、prompt token 和体积 |
-| `skill-mgr duplicates` | 检查重复或功能重叠的 skill |
-| `skill-mgr remove <名称> [-y]` | 备份 skill 并移除 Claude Code/Codex 软链接 |
-| `skill-mgr restore [名称]` | 从备份恢复已删除的 skill |
-| `skill-mgr doctor [名称] [--summary] [--json]` | 检查运行时依赖健康状态 |
-| `skill-mgr update` | 只读显示本地版本和安全更新说明 |
-| `skill-mgr update --apply [名称] [--dry-run]` | 预览或应用全局 skill 更新 |
-| `skill-mgr sync` | 从 `~/.agents/skills` 单向同步软链接到 Claude Code 和 Codex |
+| `skills-mgr list` | 列出 skill 的版本、大小、文件数、软链接状态和分类 |
+| `skills-mgr analyze [--json] [--top N] [--zero] [--no-trend]` | 基于关键词估算使用频率、prompt token 和体积 |
+| `skills-mgr duplicates` | 检查重复或功能重叠的 skill |
+| `skills-mgr remove <名称> [-y]` | 备份 skill 并移除 Claude Code/Codex 软链接 |
+| `skills-mgr restore [名称]` | 从备份恢复已删除的 skill |
+| `skills-mgr doctor [名称] [--summary] [--json]` | 检查运行时依赖健康状态 |
+| `skills-mgr update` | 只读显示本地版本和安全更新说明 |
+| `skills-mgr update --apply [名称] [--dry-run]` | 预览或应用全局 skill 更新 |
+| `skills-mgr sync` | 从 `~/.agents/skills` 单向同步软链接到 Claude Code 和 Codex |
 
 安装后也可以直接运行独立脚本：
 
 ```bash
-skill-analyzer --json --top 10
-skill-remove --list
-skill-doctor --summary
-skill-update --apply --dry-run
-sync-skills
+skills-analyzer --json --top 10
+skills-remove --list
+skills-doctor --summary
+skills-update --apply --dry-run
+skills-sync
 ```
 
 ## 工作原理
@@ -90,12 +90,12 @@ sync-skills
 ~/.codex/skills/           # Codex 软链接
 ```
 
-`skill-mgr sync` 是单向同步：它会把 `~/.agents/skills` 中缺失的 skill
+`skills-mgr sync` 是单向同步：它会把 `~/.agents/skills` 中缺失的 skill
 软链接到 Claude Code 和 Codex 目录，不会从这些工具目录反向导入 skill。
 
 ### 使用分析
 
-`skill-analyzer` 会从每个 skill 的 `SKILL.md` 中提取触发关键词，再扫描
+`skills-analyzer` 会从每个 skill 的 `SKILL.md` 中提取触发关键词，再扫描
 Claude Code 和 Codex 的 JSONL 对话记录，输出近似匹配次数、估算 prompt
 token、体积和影响分数。
 
@@ -104,21 +104,21 @@ token、体积和影响分数。
 
 ### 更新安全性
 
-`skill-mgr update` 默认只读，只显示本地版本和安全更新说明。只有
-`skill-mgr update --apply` 会通过 `npx skills add <name> --global` 修改全局
+`skills-mgr update` 默认只读，只显示本地版本和安全更新说明。只有
+`skills-mgr update --apply` 会通过 `npx skills add <name> --global` 修改全局
 skill 安装。
 
 ## 开发
 
 ```bash
-python3 -m py_compile scripts/skill-mgr scripts/skill-analyzer scripts/skill-remove scripts/skill-doctor scripts/skill-update
+python3 -m py_compile scripts/skills-mgr scripts/skills-analyzer scripts/skills-remove scripts/skills-doctor scripts/skills-update
 python3 -m unittest discover -s tests
 ```
 
 如果环境不能写默认 Python 缓存目录，可以指定临时缓存：
 
 ```bash
-PYTHONPYCACHEPREFIX=/tmp/skills-manager-pycache python3 -m py_compile scripts/skill-mgr scripts/skill-analyzer scripts/skill-remove scripts/skill-doctor scripts/skill-update
+PYTHONPYCACHEPREFIX=/tmp/skills-mgr-pycache python3 -m py_compile scripts/skills-mgr scripts/skills-analyzer scripts/skills-remove scripts/skills-doctor scripts/skills-update
 ```
 
 ## 许可证

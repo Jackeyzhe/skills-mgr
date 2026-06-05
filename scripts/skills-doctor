@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-skill-doctor — Check runtime dependency health for each installed skill.
+skills-doctor — Check runtime dependency health for each installed skill.
 
 Usage:
-  skill-doctor               Check all skills
-  skill-doctor <name>        Check a specific skill
-  skill-doctor --summary     Summary only (no per-skill lines)
-  skill-doctor --json        JSON output
+  skills-doctor               Check all skills
+  skills-doctor <name>        Check a specific skill
+  skills-doctor --summary     Summary only (no per-skill lines)
+  skills-doctor --json        JSON output
 """
 
 import json

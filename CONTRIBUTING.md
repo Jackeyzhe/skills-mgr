@@ -1,4 +1,4 @@
-# Contributing to Skills Manager
+# Contributing to skills-mgr
 
 Thanks for your interest in contributing! This document outlines the process
 for reporting issues, suggesting features, and submitting code changes.
@@ -17,7 +17,7 @@ Found a bug? Please include:
 - **Steps to reproduce** — exact commands you ran
 - **Environment** — OS, Python version (`python3 --version`), shell
 
-Use [GitHub Issues](https://github.com/Jackeyzhe/skills-manager/issues) to report.
+Use [GitHub Issues](https://github.com/Jackeyzhe/skills-mgr/issues) to report.
 
 ## Suggesting Features
 
@@ -37,9 +37,9 @@ Open a GitHub Issue with the `enhancement` label. Describe:
    - Bash: POSIX `sh` compatible (no bashisms — macOS ships bash 3.2)
 5. **Test your changes** — at minimum, verify the script runs without errors:
    ```bash
-   PYTHONPYCACHEPREFIX=/tmp/skills-manager-pycache python3 -m py_compile scripts/skill-mgr scripts/skill-analyzer scripts/skill-remove scripts/skill-doctor scripts/skill-update
+   PYTHONPYCACHEPREFIX=/tmp/skills-mgr-pycache python3 -m py_compile scripts/skills-mgr scripts/skills-analyzer scripts/skills-remove scripts/skills-doctor scripts/skills-update
    python3 -m unittest discover -s tests
-   python3 scripts/skill-mgr list
+   python3 scripts/skills-mgr list
    ```
 6. **Update documentation** if your change affects CLI behavior:
    - `SKILL.md` command table
@@ -51,12 +51,12 @@ Open a GitHub Issue with the `enhancement` label. Describe:
 ## Development Setup
 
 ```bash
-git clone https://github.com/Jackeyzhe/skills-manager.git
-cd skills-manager
+git clone https://github.com/Jackeyzhe/skills-mgr.git
+cd skills-mgr
 
 # No build step needed — run scripts directly
-python3 scripts/skill-mgr list
-python3 scripts/skill-doctor --json
+python3 scripts/skills-mgr list
+python3 scripts/skills-doctor --json
 ```
 
 ## Adding a New Subcommand
@@ -68,7 +68,7 @@ Python script in `scripts/`. To add one:
    - `#!/usr/bin/env python3` shebang
    - `argparse`-based CLI
    - English output strings
-2. Add a dispatch in `scripts/skill-mgr`:
+2. Add a dispatch in `scripts/skills-mgr`:
    ```python
    elif subcommand == "<name>":
        script = find_script("skill-<name>")
@@ -85,5 +85,5 @@ strings are English-only.
 
 ## Questions?
 
-Open a [GitHub Discussion](https://github.com/Jackeyzhe/skills-manager/discussions)
+Open a [GitHub Discussion](https://github.com/Jackeyzhe/skills-mgr/discussions)
 or file an issue.
