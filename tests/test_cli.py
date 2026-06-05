@@ -90,15 +90,16 @@ class SkillsMgrCliTests(unittest.TestCase):
             install_fixture(home)
 
             result = run_cmd([sys.executable, "scripts/skills-update"], home)
-            self.assertIn("Local skill versions", result.stdout)
+            self.assertIn("Skills Update", result.stdout)
+            self.assertIn("Local vs Remote", result.stdout)
             self.assertIn("skills-update --apply", result.stdout)
 
+            # skills-mgr has no homepage field, so it shows "Cannot determine upstream"
             result = run_cmd(
                 [sys.executable, "scripts/skills-update", "--apply", "skills-mgr", "--dry-run"],
                 home,
             )
-            self.assertIn("[dry-run]", result.stdout)
-            self.assertIn("npx --yes skills add skills-mgr --global", result.stdout)
+            self.assertIn("Cannot determine upstream repo", result.stdout)
 
 
 if __name__ == "__main__":

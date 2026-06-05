@@ -14,7 +14,7 @@
 - **安全删除**：删除前备份到 `~/.local/share/skill-backups/`
 - **恢复备份**：从备份恢复已删除的 skill
 - **健康检查**：检查 `bun`、`node`、`python3`、`npx` 等运行时依赖
-- **显式更新**：通过 `npx skills add --global` 应用更新
+- **显式更新**：通过 git + rsync 从上游 GitHub 仓库同步
 - **同步软链接**：从 `~/.agents/skills` 单向同步到 Claude Code 和 Codex
 
 ## 快速开始
@@ -105,7 +105,7 @@ token、体积和影响分数。
 ### 更新安全性
 
 `skills-mgr update` 默认只读，只显示本地版本和安全更新说明。只有
-`skills-mgr update --apply` 会通过 `npx skills add <name> --global` 修改全局
+`skills-mgr update --apply` 会通过 git + rsync 从上游仓库同步修改全局
 skill 安装。
 
 ## 开发

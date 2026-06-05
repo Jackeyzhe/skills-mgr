@@ -27,7 +27,7 @@ Use `skills-mgr` for unified skill management. The source of truth is
 | `skills-mgr restore <name>` | Restore a removed skill from backup |
 | `skills-mgr doctor` | Check runtime dependency health for installed skills |
 | `skills-mgr update` | Show local versions and safe update guidance |
-| `skills-mgr update --apply` | Apply global skill updates with `npx skills add --global` |
+| `skills-mgr update --apply` | Apply global skill updates by syncing from upstream GitHub repos |
 | `skills-mgr sync` | One-way sync symlinks from `~/.agents/skills` to Claude Code and Codex |
 
 ## Workflows
