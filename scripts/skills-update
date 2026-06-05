@@ -2,12 +2,11 @@
 """
 skills-update — Check for upstream skill updates and apply them.
 
-Shows local skill versions by default. Applying updates is explicit and
-uses `npx skills add <name> --global`.
+Shows local vs remote versions and optionally syncs from upstream repos.
 
 Usage:
-  skills-update                  Show local versions and update guidance
-  skills-update --apply [name]   Apply all updates (or a specific skill)
+  skills-update                  Show local and remote versions with update status
+  skills-update --apply [name]   Apply updates (all skills, or a specific one)
   skills-update --dry-run        Preview what would be updated
 """
 
@@ -16,8 +15,11 @@ import os
 import re
 import subprocess
 import sys
+import time
 
 SKILL_DIR = os.path.expanduser("~/.agents/skills")
+CACHE_DIR = os.path.expanduser("~/.cache/skills-update")
+CACHE_TTL = 3600  # 1 hour
 
 # ---- Terminal colors ----
 RED = "\033[0;31m"
@@ -54,43 +56,158 @@ def get_local_version(skill_path):
     return "unknown"
 
 
+def get_skill_homepage(name):
+    """Get the upstream repo (owner/repo) from a skill's SKILL.md homepage field."""
+    skill_md = os.path.join(SKILL_DIR, name, "SKILL.md")
+    if not os.path.exists(skill_md):
+        return None
+    try:
+        with open(skill_md) as f:
+            content = f.read()
+            m = re.search(r'homepage:\s*https://github\.com/([^#\s]+)', content)
+            if m:
+                return m.group(1)
+    except Exception:
+        pass
+    return None
+
+
+def version_tuple(v):
+    """Convert version string to tuple for comparison."""
+    try:
+        return tuple(int(x) for x in re.split(r'[.\-_]', v) if x.isdigit())
+    except Exception:
+        return (0,)
+
+
+def version_lt(a, b):
+    """Return True if version a < version b."""
+    return version_tuple(a) < version_tuple(b)
+
+
+def fetch_upstream_repo(repo):
+    """Clone or update a upstream repo in cache. Returns the cache path or None on failure."""
+    cache_path = os.path.join(CACHE_DIR, repo.replace("/", "_"))
+
+    # Check if cache is valid
+    if os.path.isdir(cache_path):
+        git_dir = os.path.join(cache_path, ".git")
+        if os.path.exists(git_dir):
+            # Check age
+            stamp = os.path.join(cache_path, ".fetched")
+            if os.path.exists(stamp):
+                if time.time() - os.path.getmtime(stamp) < CACHE_TTL:
+                    return cache_path  # still fresh
+
+    os.makedirs(CACHE_DIR, exist_ok=True)
+
+    if os.path.isdir(cache_path):
+        # Pull latest
+        subprocess.run(
+            ["git", "fetch", "origin"],
+            cwd=cache_path, capture_output=True, timeout=30
+        )
+        subprocess.run(
+            ["git", "reset", "--hard", "origin/main"],
+            cwd=cache_path, capture_output=True, timeout=30
+        )
+    else:
+        # Clone fresh
+        result = subprocess.run(
+            ["git", "clone", "--depth", "1", f"https://github.com/{repo}", cache_path],
+            capture_output=True, timeout=120
+        )
+        if result.returncode != 0:
+            return None
+
+    # Mark fetch time
+    with open(os.path.join(cache_path, ".fetched"), "w") as f:
+        f.write(str(int(time.time())))
+
+    return cache_path
+
+
+def get_remote_version(repo_cache, skill_name):
+    """Read version of a skill from a cloned upstream repo."""
+    # Try monorepo structure: skills/<name>/SKILL.md
+    skill_md = os.path.join(repo_cache, "skills", skill_name, "SKILL.md")
+    if not os.path.exists(skill_md):
+        # Try standalone: <name>/SKILL.md
+        skill_md = os.path.join(repo_cache, skill_name, "SKILL.md")
+    if not os.path.exists(skill_md):
+        return "unknown"
+
+    try:
+        with open(skill_md) as f:
+            for line in f:
+                m = re.match(r"^version:\s*(.+)", line)
+                if m:
+                    return m.group(1).strip()
+    except Exception:
+        pass
+    return "unknown"
+
+
 def apply_update(name, dry_run=False):
-    """Apply an update by re-adding the skill via npx."""
+    """Apply an update by syncing from the upstream monorepo."""
     print()
     print(f"  Updating {CYAN}{name}{NC}...")
 
+    homepage = get_skill_homepage(name)
+    if not homepage:
+        print(f"  {RED}Cannot determine upstream repo for {name}{NC}")
+        return False
+
     if dry_run:
-        print(f"  {YELLOW}[dry-run] Would run: npx --yes skills add {name} --global{NC}")
+        print(f"  {YELLOW}[dry-run] Would sync {name} from {homepage}{NC}")
         return True
 
-    old_ver = get_local_version(os.path.join(SKILL_DIR, name))
+    repo_cache = fetch_upstream_repo(homepage)
+    if not repo_cache:
+        print(f"  {RED}Failed to fetch upstream {homepage}{NC}")
+        return False
+
+    local_path = os.path.join(SKILL_DIR, name)
+    old_ver = get_local_version(local_path)
+    new_ver = get_remote_version(repo_cache, name)
+
+    # Skip if already up to date (old >= new means no update needed)
+    if old_ver != "unknown" and new_ver != "unknown" and not version_lt(old_ver, new_ver):
+        print(f"  {GREEN}{name} already at latest: v{old_ver}{NC}")
+        return True
+
+    # Determine remote skill path
+    remote_skill = os.path.join(repo_cache, "skills", name)
+    if not os.path.isdir(remote_skill):
+        remote_skill = os.path.join(repo_cache, name)
+    if not os.path.isdir(remote_skill):
+        print(f"  {RED}Skill {name} not found in upstream {homepage}{NC}")
+        return False
 
     try:
+        # Sync from upstream
         result = subprocess.run(
-            ["npx", "--yes", "skills", "add", name, "--global"],
-            capture_output=True, text=True, timeout=120
+            ["rsync", "-a", "--delete", f"{remote_skill}/", f"{local_path}/"],
+            capture_output=True, timeout=60
         )
         if result.returncode != 0:
-            print(f"  {RED}Update failed for {name}{NC}")
-            if result.stderr:
-                print(f"  {result.stderr[:200]}")
+            print(f"  {RED}Sync failed for {name}{NC}")
             return False
 
-        new_ver = get_local_version(os.path.join(SKILL_DIR, name))
         print(f"  {GREEN}Updated {name}: {old_ver} → {new_ver}{NC}")
 
         # Install dependencies if needed
-        scripts_dir = os.path.join(SKILL_DIR, name, "scripts")
+        scripts_dir = os.path.join(local_path, "scripts")
         if os.path.isdir(scripts_dir):
             if os.path.exists(os.path.join(scripts_dir, "bun.lock")):
-                print(f"  Installing dependencies (bun)...")
+                print(f"    Installing dependencies (bun)...")
                 subprocess.run(
                     ["bun", "install", "--silent"],
                     cwd=scripts_dir, capture_output=True
                 )
             elif os.path.exists(os.path.join(scripts_dir, "package.json")):
                 if not os.path.exists(os.path.join(scripts_dir, "node_modules")):
-                    print(f"  Installing dependencies (npm)...")
+                    print(f"    Installing dependencies (npm)...")
                     subprocess.run(
                         ["npm", "install", "--silent"],
                         cwd=scripts_dir, capture_output=True
@@ -100,8 +217,11 @@ def apply_update(name, dry_run=False):
     except subprocess.TimeoutExpired:
         print(f"  {RED}Update timed out for {name}{NC}")
         return False
-    except FileNotFoundError:
-        print(f"  {RED}npx not found. Is Node.js installed?{NC}")
+    except FileNotFoundError as e:
+        print(f"  {RED}Missing tool: {e.filename}{NC}")
+        return False
+    except Exception as e:
+        print(f"  {RED}Update failed for {name}: {e}{NC}")
         return False
 
 
@@ -116,17 +236,46 @@ def main():
     args = parser.parse_args()
 
     print()
-    print(f"  {BOLD}Skills Update — Local versions and explicit updates{NC}")
-    print("  " + "─" * 50)
+    print(f"  {BOLD}Skills Update — Local vs Remote versions{NC}")
+    print("  " + "─" * 56)
+
+    # Build mapping: repo -> [skill names]
+    repo_skills = {}
+    skill_repo = {}
+    for name in sorted(os.listdir(SKILL_DIR)):
+        path = os.path.join(SKILL_DIR, name)
+        if not os.path.isdir(path):
+            continue
+        repo = get_skill_homepage(name)
+        if repo:
+            skill_repo[name] = repo
+            if repo not in repo_skills:
+                repo_skills[repo] = []
+            repo_skills[repo].append(name)
+
+    # Fetch all upstream repos
+    print()
+    print("  Fetching upstream repos...")
+    repo_caches = {}
+    for repo in repo_skills:
+        cache = fetch_upstream_repo(repo)
+        if cache:
+            repo_caches[repo] = cache
+            print(f"    {GREEN}✓{NC} {repo}")
+        else:
+            print(f"    {RED}✗{NC} {repo} (failed)")
+
+    print()
+    print(f"  {'Name':<34} {'Local':<8} {'Remote':<8} {'Status'}")
+    print(f"  {'-'*34} {'-'*8} {'-'*8} {'-'*20}")
 
     # --apply mode
     if args.apply:
         if not args.dry_run:
-            print()
-            print(f"  {YELLOW}This will modify globally installed skills via npx skills add --global.{NC}")
+            print(f"  {YELLOW}Applying updates from upstream repos...{NC}")
+        print()
+
         if args.apply == "__ALL__":
-            print()
-            print("  Updating all skills...")
             updated = 0
             failed = 0
             for name in sorted(os.listdir(SKILL_DIR)):
@@ -138,46 +287,54 @@ def main():
                 else:
                     failed += 1
             print()
-            print("  " + "─" * 50)
+            print("  " + "─" * 56)
             print(f"  Update complete: {GREEN}{updated} succeeded{NC}, "
                   f"{RED}{failed} failed{NC}")
         else:
             apply_update(args.apply, dry_run=args.dry_run)
         return
 
-    # Default mode is intentionally read-only.
-    print()
-    print("  Local skill versions (read-only):")
-    print()
-
-    total = 0
-    versioned = 0
-    unknown = 0
+    # Read-only mode: show version comparison
+    updatable = 0
+    up_to_date = 0
+    no_remote = 0
 
     for name in sorted(os.listdir(SKILL_DIR)):
         path = os.path.join(SKILL_DIR, name)
         if not os.path.isdir(path):
             continue
-        total += 1
+
         local_ver = get_local_version(path)
 
-        if local_ver == "unknown":
-            unknown += 1
-            print(f"  ? {name}: no version tag (non-standard skill)")
-            continue
-
-        versioned += 1
-        print(f"  - {name} (v{local_ver})")
+        if name in skill_repo:
+            repo = skill_repo[name]
+            if repo in repo_caches:
+                remote_ver = get_remote_version(repo_caches[repo], name)
+                if remote_ver != "unknown" and local_ver != "unknown":
+                    if version_lt(local_ver, remote_ver):
+                        status = f"{YELLOW}update available{NC}"
+                        updatable += 1
+                    elif version_lt(remote_ver, local_ver):
+                        status = f"{CYAN}ahead of remote{NC}"
+                        up_to_date += 1
+                    else:
+                        status = f"{GREEN}up-to-date{NC}"
+                        up_to_date += 1
+                else:
+                    status = f"{CYAN}—{NC}"
+                    no_remote += 1
+                print(f"  {name:<34} {local_ver:<8} {remote_ver:<8} {status}")
+            else:
+                print(f"  {name:<34} {local_ver:<8} {'?':<8} {RED}fetch failed{NC}")
+                no_remote += 1
+        else:
+            print(f"  {name:<34} {local_ver:<8} {'—':<8} {CYAN}no upstream{NC}")
 
     print()
-    print("  " + "─" * 50)
-    print(f"  Total: {total}  |  Versioned: {versioned}  |  No version: {unknown}")
+    print("  " + "─" * 56)
+    print(f"  {GREEN}up-to-date: {up_to_date}{NC}  |  {YELLOW}update available: {updatable}{NC}  |  no remote: {no_remote}")
     print()
-
-    print("  Upstream availability is registry-dependent and is not checked by default,")
-    print("  because older skills CLI update commands can mutate global installs.")
-    print("  Preview apply commands: skills-update --apply --dry-run")
-    print("  Apply updates:          skills-update --apply")
+    print("  Apply updates: skills-update --apply")
 
 
 if __name__ == "__main__":
