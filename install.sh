@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ============================================================
-# install.sh — Install (or uninstall) skill-manager CLI tools.
+# install.sh — Install (or uninstall) skills-manager CLI tools.
 #
 # Symlinks scripts from the skill directory into ~/.local/bin/
 # so they are available on PATH.
@@ -25,7 +25,7 @@ SCRIPTS_SRC="${SKILL_DIR}/scripts"
 
 # ---- Uninstall ----
 if [ "${1:-}" = "--uninstall" ] || [ "${1:-}" = "-u" ]; then
-    echo "Removing skill-manager symlinks from ${BIN_DIR}..."
+    echo "Removing skills-manager symlinks from ${BIN_DIR}..."
     removed=0
     for script in skill-mgr skill-analyzer skill-remove skill-doctor skill-update sync-skills; do
         dst="${BIN_DIR}/${script}"
@@ -44,7 +44,7 @@ if [ "${1:-}" = "--uninstall" ] || [ "${1:-}" = "-u" ]; then
 fi
 
 # ---- Install ----
-echo "Installing skill-manager CLI tools..."
+echo "Installing skills-manager CLI tools..."
 echo "  Source: ${SCRIPTS_SRC}"
 echo "  Target: ${BIN_DIR}"
 echo ""

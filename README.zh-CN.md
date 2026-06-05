@@ -1,7 +1,7 @@
-# Skill Manager
+# Skills Manager
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![CI](https://github.com/wangzhe/skill-manager/actions/workflows/ci.yml/badge.svg)](https://github.com/wangzhe/skill-manager/actions/workflows/ci.yml)
+[![CI](https://github.com/Jackeyzhe/skills-manager/actions/workflows/ci.yml/badge.svg)](https://github.com/Jackeyzhe/skills-manager/actions/workflows/ci.yml)
 
 统一管理 Claude Code 和 Codex 使用的 AI skills：列表查看、使用估算、重复检测、
 安全删除与恢复、依赖健康检查、显式更新，以及从统一目录同步软链接。
@@ -28,8 +28,8 @@
 ### 作为 Skill 安装
 
 ```bash
-npx skills add wangzhe/skill-manager
-bash ~/.agents/skills/skill-manager/install.sh
+npx skills add Jackeyzhe/skills-manager
+bash ~/.agents/skills/skills-manager/install.sh
 ```
 
 如果 `~/.local/bin` 已在 `PATH` 中，就可以直接使用：
@@ -43,8 +43,8 @@ skill-mgr analyze --top 10
 ### 从源码运行
 
 ```bash
-git clone https://github.com/wangzhe/skill-manager.git
-cd skill-manager
+git clone https://github.com/Jackeyzhe/skills-manager.git
+cd skills-manager
 python3 scripts/skill-mgr list
 python3 scripts/skill-doctor --summary
 ```
@@ -52,8 +52,8 @@ python3 scripts/skill-doctor --summary
 ### 卸载
 
 ```bash
-bash ~/.agents/skills/skill-manager/install.sh --uninstall
-npx skills remove skill-manager
+bash ~/.agents/skills/skills-manager/install.sh --uninstall
+npx skills remove skills-manager
 ```
 
 ## CLI 参考
@@ -118,7 +118,7 @@ python3 -m unittest discover -s tests
 如果环境不能写默认 Python 缓存目录，可以指定临时缓存：
 
 ```bash
-PYTHONPYCACHEPREFIX=/tmp/skill-manager-pycache python3 -m py_compile scripts/skill-mgr scripts/skill-analyzer scripts/skill-remove scripts/skill-doctor scripts/skill-update
+PYTHONPYCACHEPREFIX=/tmp/skills-manager-pycache python3 -m py_compile scripts/skill-mgr scripts/skill-analyzer scripts/skill-remove scripts/skill-doctor scripts/skill-update
 ```
 
 ## 许可证

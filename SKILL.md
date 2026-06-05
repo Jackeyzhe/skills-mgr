@@ -1,5 +1,5 @@
 ---
-name: skill-manager
+name: skills-manager
 description: >-
   Manage installed AI skills across Claude Code and Codex. Use when the user
   wants to list skills, estimate skill usage frequency and prompt size, find
@@ -10,7 +10,7 @@ description: >-
   and skill列表.
 ---
 
-# Skill Manager
+# Skills Manager
 
 Use `skill-mgr` for unified skill management. The source of truth is
 `~/.agents/skills/`; Claude Code and Codex consume symlinks from

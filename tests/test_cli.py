@@ -32,7 +32,7 @@ def run_cmd(args, home, check=True, extra_env=None):
 
 def install_fixture(home):
     skills_dir = home / ".agents" / "skills"
-    target = skills_dir / "skill-manager"
+    target = skills_dir / "skills-manager"
     skills_dir.mkdir(parents=True)
     shutil.copytree(
         ROOT,
@@ -56,26 +56,26 @@ class SkillManagerCliTests(unittest.TestCase):
             install_fixture(home)
 
             result = run_cmd([sys.executable, "scripts/skill-mgr", "list"], home)
-            self.assertIn("skill-manager", result.stdout)
+            self.assertIn("skills-manager", result.stdout)
             self.assertIn("1.0.0", result.stdout)
 
             result = run_cmd([sys.executable, "scripts/skill-mgr", "sync"], home)
             self.assertIn("Sync complete", result.stdout)
-            self.assertTrue((home / ".claude" / "skills" / "skill-manager").is_symlink())
-            self.assertTrue((home / ".codex" / "skills" / "skill-manager").is_symlink())
+            self.assertTrue((home / ".claude" / "skills" / "skills-manager").is_symlink())
+            self.assertTrue((home / ".codex" / "skills" / "skills-manager").is_symlink())
 
-            result = run_cmd([sys.executable, "scripts/skill-remove", "--yes", "skill-manager"], home)
-            self.assertIn("Backed up skill-manager", result.stdout)
-            self.assertFalse((home / ".agents" / "skills" / "skill-manager").exists())
-            self.assertFalse((home / ".claude" / "skills" / "skill-manager").exists())
+            result = run_cmd([sys.executable, "scripts/skill-remove", "--yes", "skills-manager"], home)
+            self.assertIn("Backed up skills-manager", result.stdout)
+            self.assertFalse((home / ".agents" / "skills" / "skills-manager").exists())
+            self.assertFalse((home / ".claude" / "skills" / "skills-manager").exists())
 
             result = run_cmd(
-                [sys.executable, "scripts/skill-mgr", "restore", "skill-manager", "--yes"],
+                [sys.executable, "scripts/skill-mgr", "restore", "skills-manager", "--yes"],
                 home,
             )
-            self.assertIn("Restored skill-manager", result.stdout)
-            self.assertTrue((home / ".agents" / "skills" / "skill-manager").exists())
-            self.assertTrue((home / ".codex" / "skills" / "skill-manager").is_symlink())
+            self.assertIn("Restored skills-manager", result.stdout)
+            self.assertTrue((home / ".agents" / "skills" / "skills-manager").exists())
+            self.assertTrue((home / ".codex" / "skills" / "skills-manager").is_symlink())
 
     def test_sync_wrapper_runs_from_source_without_path_install(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -94,11 +94,11 @@ class SkillManagerCliTests(unittest.TestCase):
             self.assertIn("skill-update --apply", result.stdout)
 
             result = run_cmd(
-                [sys.executable, "scripts/skill-update", "--apply", "skill-manager", "--dry-run"],
+                [sys.executable, "scripts/skill-update", "--apply", "skills-manager", "--dry-run"],
                 home,
             )
             self.assertIn("[dry-run]", result.stdout)
-            self.assertIn("npx --yes skills add skill-manager --global", result.stdout)
+            self.assertIn("npx --yes skills add skills-manager --global", result.stdout)
 
 
 if __name__ == "__main__":

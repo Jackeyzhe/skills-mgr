@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.0] - 2026-06-05
 
 ### Added
-- Initial open-source release.
+- Initial open-source release as `skills-manager`.
 - Unified CLI (`skill-mgr`) with list, analyze, duplicates, remove, restore, doctor, update, and one-way sync subcommands.
 - Usage frequency, size, and estimated prompt token analysis (`skill-analyzer`).
 - Safe skill removal with automatic backup and restore (`skill-remove`).

@@ -1,4 +1,4 @@
 interface:
-  display_name: "Skill Manager"
+  display_name: "Skills Manager"
   short_description: "Manage, audit, and sync AI skills"
-  default_prompt: "Use $skill-manager to audit installed skills and recommend safe cleanup steps."
+  default_prompt: "Use $skills-manager to audit installed skills and recommend safe cleanup steps."

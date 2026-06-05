@@ -1,7 +1,7 @@
-# Skill Manager
+# Skills Manager
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![CI](https://github.com/wangzhe/skill-manager/actions/workflows/ci.yml/badge.svg)](https://github.com/wangzhe/skill-manager/actions/workflows/ci.yml)
+[![CI](https://github.com/Jackeyzhe/skills-manager/actions/workflows/ci.yml/badge.svg)](https://github.com/Jackeyzhe/skills-manager/actions/workflows/ci.yml)
 
 Manage installed AI skills across Claude Code and Codex: list skills, estimate
 usage, find overlap, safely remove and restore skills, check runtime health,
@@ -29,8 +29,8 @@ apply updates, and sync symlinks from one shared source directory.
 ### Install as a Skill
 
 ```bash
-npx skills add wangzhe/skill-manager
-bash ~/.agents/skills/skill-manager/install.sh
+npx skills add Jackeyzhe/skills-manager
+bash ~/.agents/skills/skills-manager/install.sh
 ```
 
 If `~/.local/bin` is on your `PATH`, the CLI is then available:
@@ -44,8 +44,8 @@ skill-mgr analyze --top 10
 ### Run from Source
 
 ```bash
-git clone https://github.com/wangzhe/skill-manager.git
-cd skill-manager
+git clone https://github.com/Jackeyzhe/skills-manager.git
+cd skills-manager
 python3 scripts/skill-mgr list
 python3 scripts/skill-doctor --summary
 ```
@@ -53,8 +53,8 @@ python3 scripts/skill-doctor --summary
 ### Uninstall
 
 ```bash
-bash ~/.agents/skills/skill-manager/install.sh --uninstall
-npx skills remove skill-manager
+bash ~/.agents/skills/skills-manager/install.sh --uninstall
+npx skills remove skills-manager
 ```
 
 ## CLI Reference
@@ -121,7 +121,7 @@ Use a temporary pycache directory when your environment cannot write to the
 default Python cache:
 
 ```bash
-PYTHONPYCACHEPREFIX=/tmp/skill-manager-pycache python3 -m py_compile scripts/skill-mgr scripts/skill-analyzer scripts/skill-remove scripts/skill-doctor scripts/skill-update
+PYTHONPYCACHEPREFIX=/tmp/skills-manager-pycache python3 -m py_compile scripts/skill-mgr scripts/skill-analyzer scripts/skill-remove scripts/skill-doctor scripts/skill-update
 ```
 
 ## License

@@ -1,4 +1,4 @@
-# Contributing to Skill Manager
+# Contributing to Skills Manager
 
 Thanks for your interest in contributing! This document outlines the process
 for reporting issues, suggesting features, and submitting code changes.
@@ -17,7 +17,7 @@ Found a bug? Please include:
 - **Steps to reproduce** — exact commands you ran
 - **Environment** — OS, Python version (`python3 --version`), shell
 
-Use [GitHub Issues](https://github.com/wangzhe/skill-manager/issues) to report.
+Use [GitHub Issues](https://github.com/Jackeyzhe/skills-manager/issues) to report.
 
 ## Suggesting Features
 
@@ -37,7 +37,7 @@ Open a GitHub Issue with the `enhancement` label. Describe:
    - Bash: POSIX `sh` compatible (no bashisms — macOS ships bash 3.2)
 5. **Test your changes** — at minimum, verify the script runs without errors:
    ```bash
-   PYTHONPYCACHEPREFIX=/tmp/skill-manager-pycache python3 -m py_compile scripts/skill-mgr scripts/skill-analyzer scripts/skill-remove scripts/skill-doctor scripts/skill-update
+   PYTHONPYCACHEPREFIX=/tmp/skills-manager-pycache python3 -m py_compile scripts/skill-mgr scripts/skill-analyzer scripts/skill-remove scripts/skill-doctor scripts/skill-update
    python3 -m unittest discover -s tests
    python3 scripts/skill-mgr list
    ```
@@ -51,8 +51,8 @@ Open a GitHub Issue with the `enhancement` label. Describe:
 ## Development Setup
 
 ```bash
-git clone https://github.com/wangzhe/skill-manager.git
-cd skill-manager
+git clone https://github.com/Jackeyzhe/skills-manager.git
+cd skills-manager
 
 # No build step needed — run scripts directly
 python3 scripts/skill-mgr list
@@ -85,5 +85,5 @@ strings are English-only.
 
 ## Questions?
 
-Open a [GitHub Discussion](https://github.com/wangzhe/skill-manager/discussions)
+Open a [GitHub Discussion](https://github.com/Jackeyzhe/skills-manager/discussions)
 or file an issue.
