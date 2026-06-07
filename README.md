@@ -4,9 +4,9 @@
 [![CI](https://github.com/Jackeyzhe/skills-mgr/actions/workflows/ci.yml/badge.svg)](https://github.com/Jackeyzhe/skills-mgr/actions/workflows/ci.yml)
 [中文文档](README.zh-CN.md)
 
-Manage installed AI skills across Claude Code and Codex: list skills, estimate
-usage, find overlap, safely remove and restore skills, check runtime health,
-apply updates, and sync symlinks from one shared source directory.
+Manage installed AI skills across Claude Code, Codex, and Hermes: list skills, estimate
+usage, find overlap, safely remove and restore skills, check runtime health, apply
+updates, and sync symlinks from one shared source directory.
 
 ## Features
 
@@ -16,15 +16,15 @@ apply updates, and sync symlinks from one shared source directory.
 - **Safely remove** skills with backups in `~/.local/share/skill-backups/`
 - **Restore** removed skills from backup
 - **Health check** runtime dependencies such as `bun`, `node`, `python3`, and `npx`
-- **Update** skills by syncing from upstream GitHub repos (git + rsync)
-- **Sync** one-way symlinks from `~/.agents/skills` to Claude Code and Codex
+- **Update** skills explicitly with `skills-mgr update --apply`
+- **Sync** one-way symlinks from `~/.agents/skills` to Claude Code, Codex, and Hermes
 
 ## Quick Start
 
 ### Prerequisites
 
 - Python 3.8+
-- Node.js / `npx` for installing or applying updates
+- Node.js / `npx` for installing skills
 - `bun` only for skills that include TypeScript scripts
 
 ### Install as a Skill
@@ -65,12 +65,12 @@ npx skills remove skills-mgr
 | `skills-mgr list` | List skills with version, size, file count, symlink status, and category |
 | `skills-mgr analyze [--json] [--top N] [--zero] [--no-trend]` | Estimate keyword-based usage frequency, prompt tokens, and size |
 | `skills-mgr duplicates` | Find overlapping or duplicate skills |
-| `skills-mgr remove <name> [-y]` | Back up a skill and remove its Claude Code/Codex symlinks |
+| `skills-mgr remove <name> [-y]` | Back up a skill and remove its Claude Code/Codex/Hermes symlinks |
 | `skills-mgr restore [name]` | Restore a previously removed skill from backup |
 | `skills-mgr doctor [name] [--summary] [--json]` | Check runtime dependency health |
 | `skills-mgr update` | Show local versions and safe update guidance without modifying installs |
 | `skills-mgr update --apply [name] [--dry-run]` | Preview or apply global skill updates |
-| `skills-mgr sync` | One-way sync symlinks from `~/.agents/skills` to Claude Code and Codex |
+| `skills-mgr sync [--include-unknown]` | One-way sync symlinks from `~/.agents/skills` to Claude Code, Codex, and Hermes |
 
 Standalone scripts are also available after installation:
 
@@ -90,11 +90,32 @@ skills-sync
 ~/.agents/skills/          # Source of truth
 ~/.claude/skills/          # Claude Code symlinks
 ~/.codex/skills/           # Codex symlinks
+~/.hermes/skills/<cat>/    # Hermes symlinks (categorized)
 ```
 
 `skills-mgr sync` is intentionally one-way. It creates missing symlinks from
-`~/.agents/skills` into Claude Code and Codex directories; it does not import
-skills back from those tool-specific directories.
+`~/.agents/skills` into Claude Code, Codex, and Hermes directories; it does not
+import skills back from those tool-specific directories.
+
+#### Hermes sync details
+
+Hermes uses a two-level layout (`~/.hermes/skills/<category>/<skill>/`) so its
+loader can group related skills. `skills-mgr sync` automatically routes each
+skill into the right category using the same keyword logic that powers
+`skills-mgr list`. The routing is:
+
+| Display category | Routed to `~/.hermes/skills/<dir>/` |
+|------------------|--------------------------------------|
+| Image Gen | `creative/` |
+| Publishing | `social-media/` |
+| Conversion | `creative/` |
+| Tool | `creative/` |
+| Meta | `software-development/` |
+| Other (unmapped) | **skipped by default** |
+
+To also sync unmapped skills into a catch-all `other/` bucket, pass
+`--include-unknown` (or `-u`). Only do this if your Hermes instance actually
+loads skills from `~/.hermes/skills/other/`.
 
 ### Usage Analysis
 
@@ -109,7 +130,7 @@ than called as tool events, so keyword matching is a practical approximation.
 
 `skills-mgr update` is read-only by default. It prints local versions and explains
 how to preview or apply updates. Only `skills-mgr update --apply` modifies global
-skill installs by syncing from upstream GitHub repos.
+skill installs via git fetch + rsync from each skill's upstream repo.
 
 ## Development
 
