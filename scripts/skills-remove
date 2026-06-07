@@ -24,6 +24,8 @@ SYMLINK_DIRS = [
     os.path.expanduser("~/.codex/skills"),
 ]
 
+HERMES_SKILLS_ROOT = os.path.expanduser("~/.hermes/skills")
+
 # ---- Terminal colors ----
 RED = "\033[0;31m"
 GREEN = "\033[0;32m"
@@ -122,6 +124,14 @@ def remove_symlinks(name):
             os.unlink(link_path)
             print(f"  Removed symlink: {link_path}")
 
+    # Hermes: look in every category subdir
+    if os.path.isdir(HERMES_SKILLS_ROOT):
+        for cat in os.listdir(HERMES_SKILLS_ROOT):
+            link_path = os.path.join(HERMES_SKILLS_ROOT, cat, name)
+            if os.path.islink(link_path):
+                os.unlink(link_path)
+                print(f"  Removed hermes symlink: {link_path}")
+
 
 def create_symlinks(name):
     """Create symlinks for a skill in all tool directories."""
@@ -163,8 +173,14 @@ def restore_backup(name, yes=False):
     # Recreate symlinks
     create_symlinks(name)
 
-
-# ---- Remove skill ----
+    # Hermes symlinks are not auto-restored (category routing required) —
+    # tell the user to re-run sync to recreate them.
+    if os.path.isdir(HERMES_SKILLS_ROOT):
+        for cat in os.listdir(HERMES_SKILLS_ROOT):
+            link_path = os.path.join(HERMES_SKILLS_ROOT, cat, name)
+            if os.path.islink(link_path) and not os.path.exists(os.readlink(link_path)):
+                print(f"{YELLOW}Note: hermes symlink exists in {cat}/ but the target is missing.{NC}")
+                print(f"  Run `skills-mgr sync` to re-link with the correct category.")
 
 def remove_skill(name, yes=False):
     """Safely remove a skill (backup + delete symlinks)."""

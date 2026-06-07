@@ -10,7 +10,7 @@ Usage:
   skills-mgr restore [name]       Restore a previously removed skill
   skills-mgr doctor [--summary]   Dependency health check
   skills-mgr update [--apply]     Show local versions or apply upstream updates
-  skills-mgr sync                 One-way sync skill symlinks to all tools
+  skills-mgr sync [--include-unknown]   One-way sync skill symlinks to all tools
 
 Each subcommand can also run standalone:
   skills-analyzer | skills-remove | skills-doctor | skills-update | skills-sync
@@ -35,6 +35,18 @@ YELLOW = "\033[1;33m"
 CYAN = "\033[0;36m"
 BOLD = "\033[1m"
 NC = "\033[0m"
+
+# ---- Hermes category mapping ----
+# Maps each skill's (display_category, hermes_dir) — display_category is what
+# we show in `list`; hermes_dir is the actual subdir under ~/.hermes/skills/.
+# Hermes category directories must already exist (Hermes auto-discovers them).
+HERMES_CATEGORIES = (
+    "apple", "autonomous-ai-agents", "china-network-blogwatcher-bypass",
+    "creative", "data-science", "devops", "dogfood", "email", "github",
+    "media", "mlops", "note-taking", "productivity", "red-teaming",
+    "research", "smart-home", "social-media", "software-development",
+    "yuanbao",
+)
 
 
 def find_script(name):
@@ -94,10 +106,14 @@ def cmd_list():
                 symlinks[tool] = "📁"
             else:
                 symlinks[tool] = "—"
+        # Hermes: look for a symlink under any ~/.hermes/skills/<cat>/<name>
+        hermes_status, hermes_cat = hermes_link_status(name)
+        symlinks["hermes"] = hermes_status
         info["symlinks"] = symlinks
+        info["hermes_cat"] = hermes_cat
 
         # Category
-        info["category"] = categorize_skill(name, path)
+        info["category"], info["hermes_dir"] = categorize_skill(name, path)
         skills.append(info)
 
     total_size = sum(s["size_kb"] for s in skills)
@@ -105,23 +121,34 @@ def cmd_list():
     print()
     print(f"{BOLD}Installed Skills ({len(skills)})  |  Total size: {total_size/1024:.1f} MB{NC}")
     print()
-    print(f"  {'Name':<32} {'Version':<10} {'Size':<8} {'Files':<5} {'CC':<4} {'CX':<4} {'Category'}")
-    print(f"  {'-'*32} {'-'*10} {'-'*8} {'-'*5} {'-'*4} {'-'*4} {'-'*12}")
+    print(f"  {'Name':<32} {'Version':<10} {'Size':<8} {'Files':<5} {'CC':<4} {'CX':<4} {'H':<14} {'Category'}")
+    print(f"  {'-'*32} {'-'*10} {'-'*8} {'-'*5} {'-'*4} {'-'*4} {'-'*14} {'-'*12}")
 
     categories = defaultdict(int)
     for s in skills:
+        h_label = s["symlinks"]["hermes"]
+        if s["hermes_cat"] and s["symlinks"]["hermes"] != "—":
+            h_label = f"{h_label} {s['hermes_cat']}"
         print(f"  {s['name']:<32} {s['version']:<10} {s['size_kb']:>5.0f}KB  {s['files']:>4}  "
-              f"{s['symlinks']['claude']:<4} {s['symlinks']['codex']:<4} {s['category']}")
+              f"{s['symlinks']['claude']:<4} {s['symlinks']['codex']:<4} {h_label:<14} {s['category']}")
         categories[s["category"]] += 1
 
     print()
     print(f"  Categories: " + "  |  ".join(f"{cat}: {cnt}" for cat, cnt in sorted(categories.items())))
-    print(f"  CC = Claude Code  |  CX = Codex  |  🔗 = symlink  |  📁 = real dir  |  — = not linked")
+    print(f"  CC = Claude Code  |  CX = Codex  |  H = Hermes  |  🔗 = symlink  |  📁 = real dir  |  — = not linked")
     print()
 
 
 def categorize_skill(name, path):
-    """Categorize a skill by name pattern."""
+    """Categorize a skill by name pattern.
+
+    Returns a tuple (display_category, hermes_dir).
+    - display_category: human-friendly bucket for the `list` view
+                       (Image Gen / Publishing / Conversion / Tool / Meta / Other).
+    - hermes_dir: kebab-case subdirectory name under ~/.hermes/skills/.
+                  None if the category does not map to a real Hermes bucket
+                  (caller should skip in strict mode).
+    """
     n = name.lower()
 
     image_skills = {"article-illustrator", "cover-image", "infographic", "comic",
@@ -134,22 +161,63 @@ def categorize_skill(name, path):
     meta_skills = {"context7-mcp", "find-skills", "humanizer", "planning-with-files",
                    "release-skills", "remotion-best-practices"}
 
+    # Display category -> Hermes subdir mapping
+    cat_map = {
+        "Image Gen": "creative",
+        "Publishing": "social-media",
+        "Conversion": "creative",          # format/translate/transcript fit creative
+        "Tool": "creative",                # diagram, electron-extract, wechat-summary
+        "Meta": "software-development",    # context7, find-skills, humanizer, etc.
+        "Other": None,                     # truly unknown — only synced with --include-unknown
+    }
+
+    display = "Other"
     for kw in image_skills:
         if kw in n:
-            return "Image Gen"
-    for kw in publish_skills:
-        if kw in n:
-            return "Publishing"
-    for kw in convert_skills:
-        if kw in n:
-            return "Conversion"
-    for kw in tool_skills:
-        if kw in n:
-            return "Tool"
-    for kw in meta_skills:
-        if kw in n:
-            return "Meta"
-    return "Other"
+            display = "Image Gen"
+            break
+    if display == "Other":
+        for kw in publish_skills:
+            if kw in n:
+                display = "Publishing"
+                break
+    if display == "Other":
+        for kw in convert_skills:
+            if kw in n:
+                display = "Conversion"
+                break
+    if display == "Other":
+        for kw in tool_skills:
+            if kw in n:
+                display = "Tool"
+                break
+    if display == "Other":
+        for kw in meta_skills:
+            if kw in n:
+                display = "Meta"
+                break
+
+    return display, cat_map[display]
+
+
+def hermes_link_status(skill_name):
+    """Look for any ~/.hermes/skills/<cat>/<skill_name> link.
+
+    Returns (status_glyph, category_or_None):
+      - ("🔗", "creative")  if a symlink exists
+      - ("📁", "creative")  if a real dir exists (not a symlink)
+      - ("—", None)         if not present in any category
+    """
+    base = os.path.expanduser("~/.hermes/skills")
+    if not os.path.isdir(base):
+        return "—", None
+    for cat in os.listdir(base):
+        candidate = os.path.join(base, cat, skill_name)
+        if os.path.islink(candidate):
+            return "🔗", cat
+        if os.path.isdir(candidate):
+            return "📁", cat
+    return "—", None
 
 
 def read_skill_version(path):
@@ -288,36 +356,92 @@ def cmd_duplicates():
 # ============================================================
 
 def cmd_sync(args=None):
-    """Sync skill symlinks from .agents/skills/ to Claude Code and Codex."""
+    """Sync skill symlinks from .agents/skills/ to Claude Code, Codex, and Hermes."""
+    include_unknown = False
     if args:
-        print(f"{RED}Error: skills-mgr sync does not support arguments: {' '.join(args)}{NC}")
-        print("Sync is one-way: ~/.agents/skills -> ~/.claude/skills and ~/.codex/skills.")
-        sys.exit(1)
+        valid, unknown = [], []
+        for a in args:
+            if a in ("--include-unknown", "-u"):
+                include_unknown = True
+            elif a in ("--help", "-h"):
+                print("Usage: skills-mgr sync [--include-unknown|-u]")
+                print("  --include-unknown  also sync skills that don't map to a known Hermes category")
+                print("                     (placed under ~/.hermes/skills/other/<name>)")
+                return
+            else:
+                unknown.append(a)
+        if unknown:
+            print(f"{RED}Error: skills-mgr sync does not support arguments: {' '.join(unknown)}{NC}")
+            print("Sync is one-way: ~/.agents/skills -> ~/.claude/skills, ~/.codex/skills, ~/.hermes/skills.")
+            sys.exit(1)
 
     print()
     print(f"{BOLD}Syncing skill symlinks (one-way)...{NC}")
     source = os.path.expanduser("~/.agents/skills")
-    targets = {
-        "~/.claude/skills": os.path.expanduser("~/.claude/skills"),
-        "~/.codex/skills": os.path.expanduser("~/.codex/skills"),
+
+    # Flat targets: claude, codex — symlink as ~/.{tool}/skills/<name>
+    flat_targets = {
+        "claude": os.path.expanduser("~/.claude/skills"),
+        "codex": os.path.expanduser("~/.codex/skills"),
     }
+    # Categorized target: hermes — symlink as ~/.hermes/skills/<cat>/<name>
+    hermes_root = os.path.expanduser("~/.hermes/skills")
 
     if not os.path.isdir(source):
         print(f"{RED}Source skill directory not found: {source}{NC}")
         sys.exit(1)
 
-    for label, target in targets.items():
-        os.makedirs(target, exist_ok=True)
-        for name in sorted(os.listdir(source)):
-            src_path = os.path.join(source, name)
-            if not os.path.isdir(src_path):
-                continue
+    hermes_counts = {"linked": 0, "skipped_unknown": 0, "skipped_existing": 0, "missing_cat": []}
+
+    for name in sorted(os.listdir(source)):
+        src_path = os.path.join(source, name)
+        if not os.path.isdir(src_path):
+            continue
+
+        # Flat sync — claude, codex (unchanged behaviour)
+        for tool, target in flat_targets.items():
+            os.makedirs(target, exist_ok=True)
             link_path = os.path.join(target, name)
             if not os.path.exists(link_path):
                 os.symlink(src_path, link_path)
-                print(f"  linked: {name} -> {label}")
+                print(f"  linked: {name} -> ~/{tool}/skills")
+
+        # Categorized sync — hermes
+        display_cat, hermes_dir = categorize_skill(name, src_path)
+        if hermes_dir is None:
+            if not include_unknown:
+                hermes_counts["skipped_unknown"] += 1
+                continue
+            hermes_dir = "other"  # user opted in to a catch-all bucket
+
+        os.makedirs(hermes_root, exist_ok=True)
+        cat_dir = os.path.join(hermes_root, hermes_dir)
+
+        if not os.path.isdir(cat_dir):
+            # In strict mode, skip rather than create unknown categories
+            if hermes_dir not in HERMES_CATEGORIES and not include_unknown:
+                hermes_counts["skipped_unknown"] += 1
+                hermes_counts["missing_cat"].append(hermes_dir)
+                continue
+            os.makedirs(cat_dir, exist_ok=True)
+
+        link_path = os.path.join(cat_dir, name)
+        if os.path.exists(link_path):
+            hermes_counts["skipped_existing"] += 1
+            continue
+        os.symlink(src_path, link_path)
+        hermes_counts["linked"] += 1
+        print(f"  linked: {name} -> ~/.hermes/skills/{hermes_dir}/")
 
     print(f"  Sync complete.")
+    if hermes_counts["linked"] or hermes_counts["skipped_unknown"]:
+        print(f"  Hermes: linked={hermes_counts['linked']}, "
+              f"skipped(no category)={hermes_counts['skipped_unknown']}, "
+              f"already-present={hermes_counts['skipped_existing']}")
+        if hermes_counts["missing_cat"]:
+            unique = sorted(set(hermes_counts["missing_cat"]))
+            print(f"{YELLOW}  Note: unknown categories skipped: {', '.join(unique)}{NC}")
+            print(f"  Re-run with --include-unknown to sync them to ~/.hermes/skills/other/")
     print()
 
     # Show directory structure tree
@@ -327,16 +451,17 @@ def cmd_sync(args=None):
     source = os.path.expanduser("~/.agents/skills")
     source_skills = sorted([n for n in os.listdir(source) if os.path.isdir(os.path.join(source, n))])
 
-    # Column widths
-    name_w = max(len(n) for n in source_skills) if source_skills else 0
-    col_w = max(name_w, 20)
-
     print(f"  {BOLD}~/.agents/skills/{NC}  (source, {len(source_skills)} skills)")
     for n in source_skills:
         print(f"      └── {n}")
     print()
 
-    for label, target in targets.items():
+    # Flat targets — claude, codex
+    flat_targets_tree = {
+        "~/.claude/skills": os.path.expanduser("~/.claude/skills"),
+        "~/.codex/skills": os.path.expanduser("~/.codex/skills"),
+    }
+    for label, target in flat_targets_tree.items():
         linked = sorted([n for n in os.listdir(target) if os.path.islink(os.path.join(target, n))])
         non_source = sorted([n for n in os.listdir(target) if os.path.isdir(os.path.join(target, n)) and not os.path.islink(os.path.join(target, n))])
         print(f"  {BOLD}{label}{NC}  (symlinks)")
@@ -345,6 +470,23 @@ def cmd_sync(args=None):
         if non_source:
             for n in non_source:
                 print(f"      └── 📁 {n}")
+        print()
+
+    # Categorized target — hermes
+    hermes_root = os.path.expanduser("~/.hermes/skills")
+    if os.path.isdir(hermes_root):
+        print(f"  {BOLD}~/.hermes/skills/{NC}  (categorized symlinks)")
+        for cat in sorted(os.listdir(hermes_root)):
+            cat_path = os.path.join(hermes_root, cat)
+            if not os.path.isdir(cat_path):
+                continue
+            linked = sorted([n for n in os.listdir(cat_path) if os.path.islink(os.path.join(cat_path, n))])
+            non_source = sorted([n for n in os.listdir(cat_path) if os.path.isdir(os.path.join(cat_path, n)) and not os.path.islink(os.path.join(cat_path, n))])
+            print(f"      {cat}/")
+            for n in linked:
+                print(f"          └── 🔗 {n}")
+            for n in non_source:
+                print(f"          └── 📁 {n}")
         print()
 
     print()
@@ -367,15 +509,17 @@ def cmd_usage():
   skills-mgr restore [name]       Restore a previously removed skill
   skills-mgr doctor [--summary]   Dependency health check
   skills-mgr update [--apply]     Show local versions or apply upstream updates
-  skills-mgr sync                 One-way sync skill symlinks to all tools
+  skills-mgr sync [--include-unknown]   One-way sync to Claude Code, Codex, and Hermes
 
 {BOLD}Examples:{NC}
-  skills-mgr list                 # See all installed skills
-  skills-mgr analyze --json       # JSON analysis report
-  skills-mgr duplicates           # Check for overlap
-  skills-mgr remove baoyu-comic   # Remove the comic skill
-  skills-mgr doctor --summary     # Quick health check
-  skills-mgr update               # Show local versions and update guidance
+  skills-mgr list                       # See all installed skills
+  skills-mgr analyze --json             # JSON analysis report
+  skills-mgr duplicates                 # Check for overlap
+  skills-mgr remove baoyu-comic         # Remove the comic skill
+  skills-mgr doctor --summary           # Quick health check
+  skills-mgr update                     # Show local versions and update guidance
+  skills-mgr sync                       # Sync to Claude Code + Codex + Hermes
+  skills-mgr sync --include-unknown     # Also sync unmapped skills to ~/.hermes/skills/other/
 
 {BOLD}Standalone scripts:{NC}
   skills-analyzer | skills-remove | skills-doctor | skills-update | skills-sync
