@@ -16,7 +16,7 @@ updates, and sync symlinks from one shared source directory.
 - **Safely remove** skills with backups in `~/.local/share/skill-backups/`
 - **Restore** removed skills from backup
 - **Health check** runtime dependencies such as `bun`, `node`, `python3`, and `npx`
-- **Update** skills explicitly with `npx skills add --global`
+- **Update** skills explicitly with `skills-mgr update --apply`
 - **Sync** one-way symlinks from `~/.agents/skills` to Claude Code, Codex, and Hermes
 
 ## Quick Start
@@ -24,7 +24,7 @@ updates, and sync symlinks from one shared source directory.
 ### Prerequisites
 
 - Python 3.8+
-- Node.js / `npx` for installing or applying updates
+- Node.js / `npx` for installing skills
 - `bun` only for skills that include TypeScript scripts
 
 ### Install as a Skill
@@ -130,7 +130,7 @@ than called as tool events, so keyword matching is a practical approximation.
 
 `skills-mgr update` is read-only by default. It prints local versions and explains
 how to preview or apply updates. Only `skills-mgr update --apply` modifies global
-skill installs by running `npx skills add <name> --global`.
+skill installs via git fetch + rsync from each skill's upstream repo.
 
 ## Development
 

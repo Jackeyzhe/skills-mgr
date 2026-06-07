@@ -174,13 +174,9 @@ def restore_backup(name, yes=False):
     create_symlinks(name)
 
     # Hermes symlinks are not auto-restored (category routing required) —
-    # tell the user to re-run sync to recreate them.
-    if os.path.isdir(HERMES_SKILLS_ROOT):
-        for cat in os.listdir(HERMES_SKILLS_ROOT):
-            link_path = os.path.join(HERMES_SKILLS_ROOT, cat, name)
-            if os.path.islink(link_path) and not os.path.exists(os.readlink(link_path)):
-                print(f"{YELLOW}Note: hermes symlink exists in {cat}/ but the target is missing.{NC}")
-                print(f"  Run `skills-mgr sync` to re-link with the correct category.")
+    # always hint the user to re-run sync.
+    print(f"{YELLOW}Note: hermes symlinks were not restored.{NC}")
+    print(f"  Run `skills-mgr sync` to recreate hermes links in the correct category.")
 
 def remove_skill(name, yes=False):
     """Safely remove a skill (backup + delete symlinks)."""

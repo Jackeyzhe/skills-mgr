@@ -14,7 +14,7 @@
 - **安全删除**：删除前备份到 `~/.local/share/skill-backups/`
 - **恢复备份**：从备份恢复已删除的 skill
 - **健康检查**：检查 `bun`、`node`、`python3`、`npx` 等运行时依赖
-- **显式更新**：通过 `npx skills add --global` 应用更新
+- **显式更新**：通过 `skills-mgr update --apply` 应用更新
 - **同步软链接**：从 `~/.agents/skills` 单向同步到 Claude Code、Codex 和 Hermes
 
 ## 快速开始
