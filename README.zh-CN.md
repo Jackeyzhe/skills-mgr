@@ -22,7 +22,7 @@
 ### 环境要求
 
 - Python 3.8+
-- Node.js / `npx`，用于安装或应用更新
+- Node.js / `npx`，用于安装 skills
 - `bun` 只在运行带 TypeScript 脚本的 skill 时需要
 
 ### 作为 Skill 安装
@@ -124,7 +124,7 @@ token、体积和影响分数。
 ### 更新安全性
 
 `skills-mgr update` 默认只读，只显示本地版本和安全更新说明。只有
-`skills-mgr update --apply` 会通过 `npx skills add <name> --global` 修改全局
+`skills-mgr update --apply` 会通过 git fetch + rsync 从上游 repo 修改全局
 skill 安装。
 
 ## 开发
